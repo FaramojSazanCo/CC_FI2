@@ -22,10 +22,6 @@ class CCIF_Iran_Checkout_Rebuild {
     ];
 
     public function __construct() {
-        // Override the default billing form rendering with our custom layout
-        add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'output_custom_billing_form_start' ], 5 );
-        add_action( 'woocommerce_after_checkout_billing_form', [ $this, 'output_custom_billing_form_end' ] );
-
         // Hook into checkout fields to manage them
         add_filter( 'woocommerce_checkout_fields', [ $this, 'customize_checkout_fields' ] );
 
