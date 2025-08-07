@@ -13,16 +13,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class CCIF_Iran_Checkout_Rebuild {
 
+    private $order_notes_field = [];
+
     public function __construct() {
         // Override the default billing form rendering with our custom layout
         add_action( 'woocommerce_before_checkout_billing_form', [ $this, 'output_custom_billing_form_start' ], 5 );
         add_action( 'woocommerce_after_checkout_billing_form', [ $this, 'output_custom_billing_form_end' ] );
 
-        // Remove the default form
+        // Remove the default billing form
         add_filter('woocommerce_checkout_billing', '__return_false');
+
+        // Hook into checkout fields to manage them
+        add_filter( 'woocommerce_checkout_fields', [ $this, 'move_order_notes_field' ] );
 
         // Enqueue scripts and styles
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+    }
+
+    public function move_order_notes_field( $fields ) {
+        if ( isset( $fields['order'] ) && isset( $fields['order']['order_comments'] ) ) {
+            $this->order_notes_field = $fields['order']['order_comments'];
+            unset( $fields['order']['order_comments'] );
+        }
+        return $fields;
     }
 
     private function normalize_persian_string($string) {
@@ -144,6 +157,13 @@ class CCIF_Iran_Checkout_Rebuild {
         woocommerce_form_field('billing_postcode', $all_fields['billing_postcode'], $checkout->get_value('billing_postcode'));
         woocommerce_form_field('billing_phone', $all_fields['billing_phone'], $checkout->get_value('billing_phone'));
         echo '</div>';
+
+        // Box 4: Order Notes
+        if ( ! empty( $this->order_notes_field ) ) {
+            echo '<div class="ccif-box order-notes-box"><h2>توضیحات تکمیلی</h2>';
+            woocommerce_form_field( 'order_comments', $this->order_notes_field, $checkout->get_value( 'order_comments' ) );
+            echo '</div>';
+        }
     }
 
     public function output_custom_billing_form_end() {
