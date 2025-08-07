@@ -15,13 +15,24 @@ class CCIF_Iran_Checkout_Rebuild {
 
     private $order_notes_field = [];
     private $custom_billing_fields = [
+        // Custom fields for logic
         'billing_person_type',
+        'billing_invoice_request',
+
+        // All fields that should persist in the user's profile
+        'billing_first_name',
+        'billing_last_name',
         'billing_national_code',
         'billing_company_name',
         'billing_economic_code',
         'billing_agent_first_name',
         'billing_agent_last_name',
-        'billing_invoice_request'
+        'billing_country',
+        'billing_state',
+        'billing_city',
+        'billing_address_1',
+        'billing_postcode',
+        'billing_phone'
     ];
 
     public function __construct() {
