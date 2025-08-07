@@ -14,6 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CCIF_Iran_Checkout_Rebuild {
 
     private $order_notes_field = [];
+    private $custom_billing_fields = [
+        'billing_person_type',
+        'billing_national_code',
+        'billing_company_name',
+        'billing_economic_code',
+        'billing_agent_first_name',
+        'billing_agent_last_name',
+        'billing_invoice_request'
+    ];
 
     public function __construct() {
         // Override the default billing form rendering with our custom layout
@@ -29,8 +38,44 @@ class CCIF_Iran_Checkout_Rebuild {
         // Modify field arguments, e.g., to remove '(optional)' text
         add_filter( 'woocommerce_form_field_args', [ $this, 'remove_optional_text' ], 10, 3 );
 
+        // Save custom fields to user meta
+        add_action( 'woocommerce_checkout_update_user_meta', [ $this, 'save_custom_fields_to_user_meta' ], 10, 2 );
+
+        // Pre-populate custom fields from user meta
+        add_filter( 'woocommerce_checkout_get_value', [ $this, 'get_custom_field_value_from_user_meta' ], 10, 2 );
+
         // Enqueue scripts and styles
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+    }
+
+    public function save_custom_fields_to_user_meta( $customer_id, $posted_data ) {
+        if ( ! $customer_id ) {
+            return; // Only for logged-in users
+        }
+
+        foreach ( $this->custom_billing_fields as $field_key ) {
+            if ( isset( $posted_data[ $field_key ] ) ) {
+                $value = sanitize_text_field( $posted_data[ $field_key ] );
+                update_user_meta( $customer_id, $field_key, $value );
+            }
+        }
+    }
+
+    public function get_custom_field_value_from_user_meta( $value, $key ) {
+        // If there's already a value (e.g., from a failed submission), don't override it.
+        if ( ! empty( $value ) ) {
+            return $value;
+        }
+
+        // Check if the user is logged in and the key is one of our custom fields.
+        if ( is_user_logged_in() && in_array( $key, $this->custom_billing_fields ) ) {
+            $saved_value = get_user_meta( get_current_user_id(), $key, true );
+            if ( $saved_value ) {
+                return $saved_value;
+            }
+        }
+
+        return $value;
     }
 
     public function move_order_notes_field( $fields ) {
