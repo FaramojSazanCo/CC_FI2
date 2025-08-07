@@ -142,10 +142,11 @@ class CCIF_Iran_Checkout_Rebuild {
         // Box 1: Invoice Request
         echo '<div class="ccif-box invoice-request-box">';
         woocommerce_form_field('billing_invoice_request', $all_fields['billing_invoice_request'], $checkout->get_value('billing_invoice_request'));
+        echo '<p class="ccif-hint">در صورت نیاز به فاکتور رسمی، این گزینه را انتخاب و تمام اطلاعات خریدار را به دقت وارد نمایید. در غیر این صورت، تنها تکمیل اطلاعات ارسال کافی است.</p>';
         echo '</div>';
 
         // Box 2: Person/Company Info
-        echo '<div class="ccif-box person-info-box"><h2>اطلاعات خریدار</h2>';
+        echo '<div class="ccif-box person-info-box"><h2 class="ccif-person-info-header">اطلاعات خریدار</h2>';
         woocommerce_form_field('billing_person_type', $all_fields['billing_person_type'], $checkout->get_value('billing_person_type'));
 
         echo '<div class="ccif-real-person-fields-wrapper">';
@@ -163,7 +164,7 @@ class CCIF_Iran_Checkout_Rebuild {
         echo '</div>';
 
         // Box 3: Address Info
-        echo '<div class="ccif-box address-info-box"><h2>اطلاعات ارسال</h2>';
+        echo '<div class="ccif-box address-info-box"><h2 class="ccif-address-info-header">اطلاعات ارسال</h2>';
         woocommerce_form_field('billing_state', $all_fields['billing_state'], $checkout->get_value('billing_state'));
         woocommerce_form_field('billing_city', $all_fields['billing_city'], $checkout->get_value('billing_city'));
         woocommerce_form_field('billing_address_1', $all_fields['billing_address_1'], $checkout->get_value('billing_address_1'));
@@ -173,7 +174,7 @@ class CCIF_Iran_Checkout_Rebuild {
 
         // Box 4: Order Notes
         if ( ! empty( $this->order_notes_field ) ) {
-            echo '<div class="ccif-box order-notes-box"><h2>توضیحات تکمیلی</h2>';
+            echo '<div class="ccif-box order-notes-box"><h2 class="ccif-order-notes-header">توضیحات تکمیلی</h2>';
             woocommerce_form_field( 'order_comments', $this->order_notes_field, $checkout->get_value( 'order_comments' ) );
             echo '</div>';
         }

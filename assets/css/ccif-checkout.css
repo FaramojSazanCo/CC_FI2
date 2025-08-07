@@ -76,7 +76,7 @@
     margin-bottom: 8px;
     font-size: 0.9rem; /* 14.4px */
     color: var(--ccif-text-color);
-    font-weight: 500;
+    font-weight: 700; /* Make labels bold */
     text-align: right; /* Align labels to the right */
 }
 
@@ -150,4 +150,39 @@
     font-weight: bold;
     margin-right: 5px;
     vertical-align: middle;
+}
+
+/* --- Hint Text Styling --- */
+.ccif-hint {
+    font-size: 0.85rem;
+    color: #6c757d; /* A secondary, muted text color */
+    margin-top: 15px;
+    margin-bottom: 0;
+    text-align: right;
+}
+
+/* --- Specific Box Styling --- */
+.invoice-request-box {
+    background-color: #e8f5e9; /* Light green */
+    border-color: #a5d6a7; /* A slightly darker green border */
+}
+
+/* --- Header Icons --- */
+.ccif-box h2::before {
+    display: inline-block;
+    font-size: 1.2rem;
+    margin-left: 10px; /* Space between icon and text */
+    vertical-align: -2px;
+}
+
+.ccif-person-info-header::before {
+    content: '👤'; /* User icon */
+}
+
+.ccif-address-info-header::before {
+    content: '🚚'; /* Truck/Shipping icon */
+}
+
+.ccif-order-notes-header::before {
+    content: '📝'; /* Notes icon */
 }
