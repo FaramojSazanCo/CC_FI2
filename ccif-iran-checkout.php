@@ -26,7 +26,7 @@ class CCIF_Iran_Checkout_Rebuild {
     }
 
     private function load_iran_data() {
-        $json_file = plugin_dir_path( __FILE__ ) . 'assets/data/iran-cities.json';
+        $json_file = plugin_dir_path( __FILE__ ) . 'assets/data/iran_data-2.json';
         if ( ! file_exists( $json_file ) ) return [ 'states' => [], 'cities' => [] ];
         $data = json_decode( file_get_contents( $json_file ), true );
         $states = [];
@@ -34,7 +34,7 @@ class CCIF_Iran_Checkout_Rebuild {
         foreach ( $data as $province ) {
             $slug = sanitize_title( $province['name'] );
             $states[ $slug ] = $province['name'];
-            $cities[ $slug ] = array_column( $province['cities'], 'name' );
+            $cities[ $slug ] = $province['cities'];
         }
         return [ 'states' => $states, 'cities' => $cities ];
     }
