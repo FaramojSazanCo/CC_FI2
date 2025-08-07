@@ -1,17 +1,12 @@
 jQuery(function($) {
     'use strict';
 
-    console.log('--- CCIF Checkout Script Loaded ---');
-
     // Ensure ccifData and cities exist to prevent errors
     if (typeof ccifData === 'undefined' || !ccifData.cities) {
         console.error('CCIF Iran Checkout: City data is not available.');
         return;
     }
-
-    console.log('Received data from PHP (ccifData):', ccifData);
     var cities = ccifData.cities;
-    console.log('Cities object being used:', cities);
     var requiredStar = ' <abbr class="required" title="required">*</abbr>';
 
     /**
@@ -67,11 +62,8 @@ jQuery(function($) {
      * Populates the city dropdown based on the selected state.
      */
     function populateCities() {
-        console.log('--- Fired populateCities() ---');
         var state = $('#billing_state').val();
         var $cityField = $('#billing_city');
-        console.log('Selected state value:', state);
-
 
         // Remember the current value if it exists
         var currentCity = $cityField.val();
@@ -79,7 +71,6 @@ jQuery(function($) {
         $cityField.empty().append('<option value="">' + 'ابتدا استان را انتخاب کنید' + '</option>');
 
         if (state && cities[state]) {
-            console.log('Found cities for this state:', cities[state]);
             $.each(cities[state], function(index, cityName) {
                 // Create new option, select it if it matches the remembered value
                 $cityField.append($('<option>', {
@@ -88,10 +79,7 @@ jQuery(function($) {
                     selected: cityName === currentCity
                 }));
             });
-        } else {
-            console.log('Could not find cities for state "' + state + '". Please check if it exists in the ccifData.cities object.');
         }
-        console.log('--- Finished populateCities() ---');
     }
 
     // --- Event Handlers ---
@@ -104,8 +92,18 @@ jQuery(function($) {
     updateRequiredStatus();
 
     // Populate cities on load if a state is already selected (e.g., on form validation error)
+    // Also, trigger it on updated_checkout which is fired by WooCommerce after state field changes.
+    $(document.body).on('updated_checkout', function() {
+        // A small delay can help ensure our script runs after WooCommerce has finished its own updates.
+        setTimeout(function() {
+            if ($('#billing_state').val() && $('#billing_city').children().length <= 1) {
+                populateCities();
+            }
+        }, 100);
+    });
+
+    // Initial population for page loads where state is already set.
     if ($('#billing_state').val()) {
-        // A small delay might be necessary if other scripts are manipulating the checkout form.
-        setTimeout(populateCities, 100);
+        populateCities();
     }
 });

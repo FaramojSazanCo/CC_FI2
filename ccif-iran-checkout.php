@@ -25,25 +25,60 @@ class CCIF_Iran_Checkout_Rebuild {
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
     }
 
-    private function load_iran_data() {
-        $json_file = plugin_dir_path( __FILE__ ) . 'assets/data/iran_data-2.json';
-        if ( ! file_exists( $json_file ) ) {
-            error_log('CCIF DEBUG: JSON file not found at ' . $json_file);
-            return [ 'states' => [], 'cities' => [] ];
-        }
-        $data = json_decode( file_get_contents( $json_file ), true );
-        $states = [];
-        $cities = [];
-        foreach ( $data as $province ) {
-            $slug = sanitize_title( $province['name'] );
-            $states[ $slug ] = $province['name'];
-            $cities[ $slug ] = $province['cities'];
-        }
-        error_log('CCIF DEBUG: load_iran_data() successfully processed data.');
-        error_log('CCIF DEBUG: Total states loaded: ' . count($states));
-        error_log('CCIF DEBUG: Sample state key (slug): ' . print_r(array_key_first($cities), true));
+    private function normalize_persian_string($string) {
+        // Replace common Arabic characters with Persian equivalents for better matching.
+        $string = str_replace(['ي', 'ك', 'آ'], ['ی', 'ک', 'ا'], $string);
+        // Remove non-breaking spaces and trim whitespace from the beginning and end.
+        $string = trim(str_replace('&nbsp;', ' ', $string));
+        return $string;
+    }
 
-        return [ 'states' => $states, 'cities' => $cities ];
+    private function load_iran_data() {
+        // Ensure WooCommerce is active to avoid fatal errors.
+        if ( ! class_exists('WooCommerce') ) {
+            return ['states' => [], 'cities' => []];
+        }
+
+        // Get the official list of states from WooCommerce for Iran.
+        // This returns an array like: [ 'TEH' => 'تهران', 'KHZ' => 'خوزستان', ... ]
+        $wc_states = WC()->countries->get_states('IR');
+
+        if (empty($wc_states)) {
+            return ['states' => [], 'cities' => []];
+        }
+
+        // Load the city data from our custom JSON file.
+        $json_file = plugin_dir_path(__FILE__) . 'assets/data/iran_data-2.json';
+        if (!file_exists($json_file)) {
+            // If the city file is missing, still return the official states for the dropdown.
+            return ['states' => $wc_states, 'cities' => []];
+        }
+        $custom_data = json_decode(file_get_contents($json_file), true);
+
+        // Create a reverse map of normalized state names to state codes for robust lookup.
+        // e.g., [ 'تهران' => 'TEH', 'خوزستان' => 'KHZ', ... ]
+        $normalized_name_to_code_map = [];
+        foreach ($wc_states as $code => $name) {
+            $normalized_name_to_code_map[$this->normalize_persian_string($name)] = $code;
+        }
+
+        $cities = [];
+        if (is_array($custom_data)) {
+            foreach ($custom_data as $province) {
+                if (isset($province['name']) && isset($province['cities'])) {
+                    $normalized_province_name = $this->normalize_persian_string($province['name']);
+                    // Find the official WooCommerce code for the current province name.
+                    if (isset($normalized_name_to_code_map[$normalized_province_name])) {
+                        $state_code = $normalized_name_to_code_map[$normalized_province_name];
+                        // Use the official state code as the key for the cities array.
+                        $cities[$state_code] = $province['cities'];
+                    }
+                }
+            }
+        }
+
+        // Return the official WC states for the dropdown and the cities keyed by official codes.
+        return ['states' => $wc_states, 'cities' => $cities];
     }
 
     public function get_all_checkout_fields() {
@@ -117,15 +152,8 @@ class CCIF_Iran_Checkout_Rebuild {
 
     public function enqueue_assets() {
         if ( ! is_checkout() ) return;
-
-        $iran_data = $this->load_iran_data();
-        $data_to_localize = [ 'cities' => $iran_data['cities'] ];
-
-        error_log('CCIF DEBUG: enqueue_assets() is preparing to localize data.');
-        error_log('CCIF DEBUG: Sample of data being localized (first key): ' . print_r(key($data_to_localize['cities']), true));
-
         wp_enqueue_script( 'ccif-checkout-js', plugin_dir_url( __FILE__ ) . 'assets/js/ccif-checkout.js', ['jquery'], '6.0', true );
-        wp_localize_script( 'ccif-checkout-js', 'ccifData', $data_to_localize );
+        wp_localize_script( 'ccif-checkout-js', 'ccifData', [ 'cities' => $this->load_iran_data()['cities'] ] );
         wp_enqueue_style( 'ccif-checkout-css', plugin_dir_url( __FILE__ ) . 'assets/css/ccif-checkout.css', [], '6.0' );
     }
 }
