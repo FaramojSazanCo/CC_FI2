@@ -27,7 +27,10 @@ class CCIF_Iran_Checkout_Rebuild {
 
     private function load_iran_data() {
         $json_file = plugin_dir_path( __FILE__ ) . 'assets/data/iran_data-2.json';
-        if ( ! file_exists( $json_file ) ) return [ 'states' => [], 'cities' => [] ];
+        if ( ! file_exists( $json_file ) ) {
+            error_log('CCIF DEBUG: JSON file not found at ' . $json_file);
+            return [ 'states' => [], 'cities' => [] ];
+        }
         $data = json_decode( file_get_contents( $json_file ), true );
         $states = [];
         $cities = [];
@@ -36,6 +39,10 @@ class CCIF_Iran_Checkout_Rebuild {
             $states[ $slug ] = $province['name'];
             $cities[ $slug ] = $province['cities'];
         }
+        error_log('CCIF DEBUG: load_iran_data() successfully processed data.');
+        error_log('CCIF DEBUG: Total states loaded: ' . count($states));
+        error_log('CCIF DEBUG: Sample state key (slug): ' . print_r(array_key_first($cities), true));
+
         return [ 'states' => $states, 'cities' => $cities ];
     }
 
@@ -110,8 +117,15 @@ class CCIF_Iran_Checkout_Rebuild {
 
     public function enqueue_assets() {
         if ( ! is_checkout() ) return;
+
+        $iran_data = $this->load_iran_data();
+        $data_to_localize = [ 'cities' => $iran_data['cities'] ];
+
+        error_log('CCIF DEBUG: enqueue_assets() is preparing to localize data.');
+        error_log('CCIF DEBUG: Sample of data being localized (first key): ' . print_r(key($data_to_localize['cities']), true));
+
         wp_enqueue_script( 'ccif-checkout-js', plugin_dir_url( __FILE__ ) . 'assets/js/ccif-checkout.js', ['jquery'], '6.0', true );
-        wp_localize_script( 'ccif-checkout-js', 'ccifData', [ 'cities' => $this->load_iran_data()['cities'] ] );
+        wp_localize_script( 'ccif-checkout-js', 'ccifData', $data_to_localize );
         wp_enqueue_style( 'ccif-checkout-css', plugin_dir_url( __FILE__ ) . 'assets/css/ccif-checkout.css', [], '6.0' );
     }
 }
