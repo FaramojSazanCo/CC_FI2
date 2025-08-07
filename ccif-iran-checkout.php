@@ -69,75 +69,87 @@ class CCIF_Iran_Checkout_Rebuild {
     }
 
     public function customize_checkout_fields( $fields ) {
-        // --- 1. Add or Modify Custom Fields ---
 
-        $fields['billing']['billing_invoice_request'] = [
-            'type'     => 'checkbox',
-            'label'    => 'درخواست صدور فاکتور رسمی',
-            'class'    => ['form-row-wide', 'ccif-group-invoice'],
-            'priority' => 5,
-        ];
-
-        $fields['billing']['billing_person_type'] = [
-            'type'     => 'select',
-            'label'    => 'نوع شخص',
-            'class'    => ['form-row-wide', 'ccif-group-person', 'ccif-group-start'], // Mark as start of a group
-            'priority' => 15,
-            'options'  => [
-                ''      => 'انتخاب کنید',
-                'real'  => 'حقیقی',
-                'legal' => 'حقوقی',
+        // Define all our custom fields and modifications in one place.
+        $custom_fields = [
+            'billing_invoice_request' => [
+                'type'     => 'checkbox',
+                'label'    => 'درخواست صدور فاکتور رسمی',
+                'class'    => ['form-row-wide', 'ccif-group-invoice', 'ccif-group-start', 'ccif-group-end'],
+                'priority' => 5,
+            ],
+            'billing_person_type' => [
+                'type'     => 'select',
+                'label'    => 'نوع شخص',
+                'class'    => ['form-row-wide', 'ccif-group-person', 'ccif-group-start'],
+                'priority' => 15,
+                'options'  => [
+                    ''      => 'انتخاب کنید',
+                    'real'  => 'حقیقی',
+                    'legal' => 'حقوقی',
+                ],
+            ],
+            'billing_first_name' => [
+                'class'    => ['form-row-first', 'ccif-group-person'],
+                'priority' => 20,
+            ],
+            'billing_last_name' => [
+                'class'    => ['form-row-last', 'ccif-group-person'],
+                'priority' => 30,
+            ],
+            'billing_national_code' => [
+                'label'       => 'کد ملی',
+                'placeholder' => '۱۰ رقم بدون خط تیره',
+                'required'    => false,
+                'class'       => ['form-row-wide', 'ccif-group-person'],
+                'priority'    => 40,
+            ],
+            'billing_company' => [ // Using standard 'billing_company'
+                'label'    => 'نام شرکت',
+                'class'    => ['form-row-first', 'ccif-group-person'],
+                'priority' => 50,
+            ],
+            'billing_economic_code' => [
+                'label'       => 'شناسه ملی/اقتصادی',
+                'required'    => false,
+                'class'       => ['form-row-last', 'ccif-group-person', 'ccif-group-end'],
+                'priority'    => 60,
+            ],
+            'billing_state' => [
+                'class'    => ['form-row-first', 'ccif-group-address', 'ccif-group-start'],
+                'priority' => 70,
+            ],
+            'billing_city' => [
+                'class'    => ['form-row-last', 'ccif-group-address'],
+                'priority' => 80,
+            ],
+            'billing_address_1' => [
+                'placeholder' => 'خیابان، کوچه، پلاک، واحد',
+                'class'       => ['form-row-wide', 'ccif-group-address'],
+                'priority'    => 90,
+            ],
+            'billing_postcode' => [
+                'class'    => ['form-row-first', 'ccif-group-address'],
+                'priority' => 100,
+            ],
+            'billing_phone' => [
+                'class'    => ['form-row-last', 'ccif-group-address', 'ccif-group-end'],
+                'priority' => 110,
             ],
         ];
 
-        // --- 2. Adjust Standard Fields ---
+        // Safely merge our customizations with the existing fields.
+        foreach ( $custom_fields as $key => $custom_field ) {
+            if ( isset( $fields['billing'][ $key ] ) ) {
+                // If the field exists, merge our changes.
+                $fields['billing'][ $key ] = array_merge( $fields['billing'][ $key ], $custom_field );
+            } else {
+                // Otherwise, add it as a new field.
+                $fields['billing'][ $key ] = $custom_field;
+            }
+        }
 
-        // Person info fields
-        $fields['billing']['billing_first_name']['class'] = ['form-row-first', 'ccif-group-person'];
-        $fields['billing']['billing_first_name']['priority'] = 20;
-
-        $fields['billing']['billing_last_name']['class'] = ['form-row-last', 'ccif-group-person'];
-        $fields['billing']['billing_last_name']['priority'] = 30;
-
-        $fields['billing']['billing_national_code'] = [
-            'label'       => 'کد ملی',
-            'placeholder' => '۱۰ رقم بدون خط تیره',
-            'required'    => false,
-            'class'       => ['form-row-wide', 'ccif-group-person'],
-            'priority'    => 40,
-        ];
-
-        // Use standard company field, just change the label and add classes
-        $fields['billing']['billing_company']['label'] = 'نام شرکت';
-        $fields['billing']['billing_company']['class'] = ['form-row-first', 'ccif-group-person'];
-        $fields['billing']['billing_company']['priority'] = 50;
-
-        $fields['billing']['billing_economic_code'] = [
-            'label'       => 'شناسه ملی/اقتصادی',
-            'required'    => false,
-            'class'       => ['form-row-last', 'ccif-group-person', 'ccif-group-end'], // Mark as end of a group
-            'priority'    => 60,
-        ];
-
-        // Address Fields
-        $fields['billing']['billing_state']['class'] = ['form-row-first', 'ccif-group-address', 'ccif-group-start'];
-        $fields['billing']['billing_state']['priority'] = 70;
-
-        $fields['billing']['billing_city']['class'] = ['form-row-last', 'ccif-group-address'];
-        $fields['billing']['billing_city']['priority'] = 80;
-
-        $fields['billing']['billing_address_1']['class'] = ['form-row-wide', 'ccif-group-address'];
-        $fields['billing']['billing_address_1']['priority'] = 90;
-        $fields['billing']['billing_address_1']['placeholder'] = 'خیابان، کوچه، پلاک، واحد';
-
-
-        $fields['billing']['billing_postcode']['class'] = ['form-row-first', 'ccif-group-address'];
-        $fields['billing']['billing_postcode']['priority'] = 100;
-
-        $fields['billing']['billing_phone']['class'] = ['form-row-last', 'ccif-group-address', 'ccif-group-end'];
-        $fields['billing']['billing_phone']['priority'] = 110;
-
-        // --- 3. Move Order Notes ---
+        // --- Move Order Notes ---
         if (isset($fields['order']['order_comments'])) {
             $fields['billing']['order_comments'] = $fields['order']['order_comments'];
             $fields['billing']['order_comments']['label'] = 'توضیحات تکمیلی';
@@ -146,12 +158,8 @@ class CCIF_Iran_Checkout_Rebuild {
             unset($fields['order']['order_comments']);
         }
 
-        // Unset fields we don't use
+        // Unset fields we absolutely don't want.
         unset($fields['billing']['billing_address_2']);
-        unset($fields['billing']['billing_company_name']); // Remove my old custom one
-        unset($fields['billing']['billing_agent_first_name']);
-        unset($fields['billing_agent_last_name']);
-
 
         return $fields;
     }
