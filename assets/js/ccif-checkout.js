@@ -7,7 +7,6 @@ jQuery(function($) {
         return;
     }
     var cities = ccifData.cities;
-    var requiredStar = ' <abbr class="required" title="required">*</abbr>';
 
     /**
      * Toggles the visibility of fields for Real vs. Legal persons.
@@ -38,20 +37,13 @@ jQuery(function($) {
         // Target all fields within the person/company box
         $('.person-info-box .form-row').each(function() {
             var $wrapper = $(this);
-            var $label = $wrapper.find('label');
             var $input = $wrapper.find('input, select');
 
             // Set the required property on the input/select element
             $input.prop('required', isInvoiceRequested);
 
-            // Manually add or remove the asterisk to the label for visual feedback
-            if (isInvoiceRequested) {
-                if ($label.find('.required').length === 0) {
-                    $label.append(requiredStar);
-                }
-            } else {
-                $label.find('.required').remove();
-            }
+            // Toggle a class on the wrapper for CSS styling of the indicator
+            $wrapper.toggleClass('ccif-is-required', isInvoiceRequested);
         });
 
         // Trigger the WooCommerce event to update its validation state

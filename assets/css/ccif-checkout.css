@@ -40,6 +40,7 @@
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid var(--ccif-border-color);
+    text-align: right; /* Align headings to the right */
 }
 
 /* --- Form Row Layout --- */
@@ -76,6 +77,7 @@
     font-size: 0.9rem; /* 14.4px */
     color: var(--ccif-text-color);
     font-weight: 500;
+    text-align: right; /* Align labels to the right */
 }
 
 /* --- Input, Select, and Textarea Styling --- */
@@ -130,18 +132,22 @@
 
 /* --- Custom Required Field Indicator --- */
 
-/* First, hide the default WooCommerce asterisk */
+/* Hide the default WooCommerce asterisk to prevent it from showing */
 .ccif-box label .required {
-    display: none;
+    display: none !important;
 }
 
-/* Then, add our own indicator to the label of required fields */
-.ccif-box .validate-required label::after {
+/*
+ * Add our own indicator. We target both fields that are always required (.validate-required)
+ * and fields that become required dynamically via our JS (.ccif-is-required).
+ */
+.ccif-box .validate-required label::after,
+.ccif-box .ccif-is-required label::after {
     content: '•'; /* A simple dot/bullet character */
     color: var(--ccif-error-color);
-    font-size: 1.5rem; /* Make it a bit larger */
+    font-size: 1.5rem;
     line-height: 1;
     font-weight: bold;
-    margin-right: 5px; /* Space it out from the label text */
-    vertical-align: middle; /* Align it nicely with the text */
+    margin-right: 5px;
+    vertical-align: middle;
 }

@@ -44,8 +44,9 @@ class CCIF_Iran_Checkout_Rebuild {
     public function remove_optional_text( $args, $key, $value ) {
         // This function removes the "(optional)" text from the labels of non-required fields.
         if ( ! $args['required'] && isset($args['label']) ) {
-            // We use a regex to remove the span, which is more reliable than matching translated text.
-            $args['label'] = preg_replace( '/&nbsp;<span class="optional">\(.*\)<\/span>/', '', $args['label'] );
+            // This regex is more flexible. It looks for an optional whitespace or &nbsp;
+            // followed by the <span class="optional">...</span> tag and removes it.
+            $args['label'] = preg_replace( '/(\s|&nbsp;)?<span class="optional">.*?<\/span>/i', '', $args['label'] );
         }
         return $args;
     }
