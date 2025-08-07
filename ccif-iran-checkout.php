@@ -26,6 +26,9 @@ class CCIF_Iran_Checkout_Rebuild {
         // Hook into checkout fields to manage them
         add_filter( 'woocommerce_checkout_fields', [ $this, 'move_order_notes_field' ] );
 
+        // Modify field arguments, e.g., to remove '(optional)' text
+        add_filter( 'woocommerce_form_field_args', [ $this, 'remove_optional_text' ], 10, 3 );
+
         // Enqueue scripts and styles
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
     }
@@ -36,6 +39,15 @@ class CCIF_Iran_Checkout_Rebuild {
             unset( $fields['order']['order_comments'] );
         }
         return $fields;
+    }
+
+    public function remove_optional_text( $args, $key, $value ) {
+        // This function removes the "(optional)" text from the labels of non-required fields.
+        if ( ! $args['required'] && isset($args['label']) ) {
+            // We use a regex to remove the span, which is more reliable than matching translated text.
+            $args['label'] = preg_replace( '/&nbsp;<span class="optional">\(.*\)<\/span>/', '', $args['label'] );
+        }
+        return $args;
     }
 
     private function normalize_persian_string($string) {
