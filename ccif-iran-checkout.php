@@ -69,6 +69,7 @@ class CCIF_Iran_Checkout_Rebuild {
     }
 
     public function customize_checkout_fields( $fields ) {
+        error_log('CCIF DEBUG (Before): ' . print_r($fields, true));
 
         // Define all our custom fields and modifications in one place.
         $custom_fields = [
@@ -161,6 +162,7 @@ class CCIF_Iran_Checkout_Rebuild {
         // Unset fields we absolutely don't want.
         unset($fields['billing']['billing_address_2']);
 
+        error_log('CCIF DEBUG (After): ' . print_r($fields, true));
         return $fields;
     }
 
