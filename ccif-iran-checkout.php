@@ -69,8 +69,6 @@ class CCIF_Iran_Checkout_Rebuild {
     }
 
     public function customize_checkout_fields( $fields ) {
-        error_log('CCIF DEBUG (Before): ' . print_r($fields, true));
-
         // Define all our custom fields and modifications in one place.
         $custom_fields = [
             'billing_invoice_request' => [
@@ -142,8 +140,8 @@ class CCIF_Iran_Checkout_Rebuild {
         // Safely merge our customizations with the existing fields.
         foreach ( $custom_fields as $key => $custom_field ) {
             if ( isset( $fields['billing'][ $key ] ) ) {
-                // If the field exists, merge our changes.
-                $fields['billing'][ $key ] = array_merge( $fields['billing'][ $key ], $custom_field );
+                // If the field exists, RECURSIVELY merge our changes to preserve all original properties.
+                $fields['billing'][ $key ] = array_replace_recursive( $fields['billing'][ $key ], $custom_field );
             } else {
                 // Otherwise, add it as a new field.
                 $fields['billing'][ $key ] = $custom_field;
@@ -162,7 +160,6 @@ class CCIF_Iran_Checkout_Rebuild {
         // Unset fields we absolutely don't want.
         unset($fields['billing']['billing_address_2']);
 
-        error_log('CCIF DEBUG (After): ' . print_r($fields, true));
         return $fields;
     }
 
